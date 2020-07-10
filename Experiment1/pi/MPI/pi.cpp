@@ -18,7 +18,7 @@ int main(int argc, char **argv)
     double startTime = MPI_Wtime();
 
     double local = 0, pi;
-    for (int i = rank; i < n; i = i + size)
+    for (int i = rank; i < n; i += size)
     {
         double x = (i + 0.5) / n;
         local += 4.0 / (1.0 + pow(x, 2));
