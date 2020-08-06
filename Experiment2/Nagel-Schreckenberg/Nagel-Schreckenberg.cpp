@@ -1,4 +1,3 @@
-// 《并行计算——结构·算法·编程》 P425 15.2.6
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
@@ -12,14 +11,15 @@ using namespace std;
 const double p = 0.2;         // probability of slow down
 const unsigned int v_max = 8; // upper bound of velocity
 
+unsigned int velocity[1000000 + 1];
+unsigned int position[1000000 + 1];
+// 为避免 Segment Fault 将数组设为全局
+
 int main(int argc, char *argv[])
 {
     int rank, size;
     const int n = atoi(argv[1]);              // 获取车辆数量
     const int numberOfCycles = atoi(argv[2]); // 周期数
-
-    unsigned int velocity[n + 1];
-    unsigned int position[n + 1];
 
     MPI_Init(NULL, NULL);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -58,8 +58,8 @@ int main(int argc, char *argv[])
             MPI_Send(position + head, 1, MPI_UNSIGNED, rank - 1, i * (size - 1) + (rank - 1), MPI_COMM_WORLD);
         if (rank != size - 1) // 不为首个部分
         {
-            MPI_Status stat;
-            MPI_Recv(position + tail, 1, MPI_UNSIGNED, rank + 1, i * (size - 1) + rank, MPI_COMM_WORLD, &stat);
+            MPI_Status status;
+            MPI_Recv(position + tail, 1, MPI_UNSIGNED, rank + 1, i * (size - 1) + rank, MPI_COMM_WORLD, &status);
         }
         for (int j = head; j < tail; j++)
         {
@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
     if (rank == 0)
     {
         ofstream outFile;
-        outFile.open("Result.data", ios::out | ios::trunc);
+        outFile.open(string("../traffic_condition/") + argv[1] + "x" + argv[2] + ".data", ios::out | ios::trunc);
         outFile << "n = " << n << endl;
         outFile << "Cycles = " << numberOfCycles << endl;
         for (int i = n - 1; i >= 0; i--)
