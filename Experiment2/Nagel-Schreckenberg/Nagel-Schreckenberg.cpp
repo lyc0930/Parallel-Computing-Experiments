@@ -82,13 +82,21 @@ int main(int argc, char *argv[])
         }
     }
 
-    unsigned int velocity_final[n + 1];
-    unsigned int position_final[n + 1];
+    if (rank == 0)
+    {
+        MPI_Gatherv(MPI_IN_PLACE, tail - head, MPI_UNSIGNED, velocity, recvcounts, displs, MPI_UNSIGNED, 0,
+                    MPI_COMM_WORLD);
+        MPI_Gatherv(MPI_IN_PLACE, tail - head, MPI_UNSIGNED, position, recvcounts, displs, MPI_UNSIGNED, 0,
+                    MPI_COMM_WORLD);
+    }
+    else
+    {
 
-    MPI_Gatherv(velocity + head, tail - head, MPI_UNSIGNED, velocity_final, recvcounts, displs, MPI_UNSIGNED, 0,
-                MPI_COMM_WORLD);
-    MPI_Gatherv(position + head, tail - head, MPI_UNSIGNED, position_final, recvcounts, displs, MPI_UNSIGNED, 0,
-                MPI_COMM_WORLD);
+        MPI_Gatherv(velocity + head, tail - head, MPI_UNSIGNED, velocity, recvcounts, displs, MPI_UNSIGNED, 0,
+                    MPI_COMM_WORLD);
+        MPI_Gatherv(position + head, tail - head, MPI_UNSIGNED, position, recvcounts, displs, MPI_UNSIGNED, 0,
+                    MPI_COMM_WORLD);
+    }
 
     double endTime = MPI_Wtime();
 
@@ -102,8 +110,7 @@ int main(int argc, char *argv[])
         outFile << "n = " << n << endl;
         outFile << "Cycles = " << numberOfCycles << endl;
         for (int i = n - 1; i >= 0; i--)
-            outFile << "Car " << n - i - 1 << " : Position " << position_final[i] << ", Velocity " << velocity_final[i]
-                    << endl;
+            outFile << "Car " << n - i - 1 << " : Position " << position[i] << ", Velocity " << velocity[i] << endl;
         outFile.close();
         cout << "Elapsed time = " << endTime - startTime << "s" << endl;
     }
