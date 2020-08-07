@@ -39,7 +39,7 @@ int main(int argc, char **argv)
     if (rank == 0)
     {
         cout << "pi = " << pi << endl;
-        cout << "Elapsed time = " << endTime - startTime << "s" << endl;
+        cout << "Elapsed time = " << 10E6 * (endTime - startTime) << "microsecond" << endl;
     }
 
     MPI_Finalize();

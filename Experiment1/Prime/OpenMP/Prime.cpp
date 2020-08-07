@@ -8,7 +8,6 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-    int num = 0;
     const int numberOfThreads = atoi(argv[1]); // 获取并行数
     const int n = atoi(argv[2]);               // 获取级数规模
 
@@ -35,6 +34,6 @@ int main(int argc, char *argv[])
     double endTime = omp_get_wtime();
 
     cout << "The number of prime numbers is " << total << endl;
-    cout << "Elapsed time = " << endTime - startTime << "s" << endl;
+    cout << "Elapsed time = " << 1E6 * (endTime - startTime) << "microsecond" << endl;
     return 0;
 }

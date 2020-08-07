@@ -35,5 +35,5 @@ int main(int argc, char **argv)
 
     double endTime = omp_get_wtime();
 
-    cout << "Elapsed time = " << endTime - startTime << "s" << endl;
+    cout << "Elapsed time = " << 10E6 * (endTime - startTime) << "microsecond" << endl;
 }
