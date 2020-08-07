@@ -27,10 +27,12 @@ long double operator"" _ms(unsigned long long t) { return t / 1000.0; }
 
 const long double G = 6.6710E-11; // 引力常数
 const long double m = 10000_kg;   // 小球质量
-const long double deltaT = 1_ms;
-const long double T = 1_s;
+const long double deltaT = 1_ms;  // 刷新率
+const long double T = 1_s;        // 总仿真时间
 
-long double Coordinate_x[N], Coordinate_y[N], Velocity_x[N], Velocity_y[N], Force_x[N], Force_y[N], temp[N];
+long double Coordinate_x[N], Coordinate_y[N]; // 坐标
+long double Velocity_x[N], Velocity_y[N];     // 速度
+long double Force_x[N], Force_y[N];           // 受力
 
 // 在每个并行进程中计算小球数据
 class ParallelBodiesCalculator
@@ -55,9 +57,9 @@ class ParallelBodiesCalculator
                 {
                     long double dx = Coordinate_x[j] - Coordinate_x[i];
                     long double dy = Coordinate_y[j] - Coordinate_y[i];
-                    long double r = sqrtl(dx * dx + dy * dy);
+                    long double r = sqrtl(dx * dx + dy * dy); // 两球间距离
 
-                    if (r == 0.L)
+                    if (r == 0.0)
                         r = numeric_limits<long double>::min(); // 防止除以 0
 
                     Force_x[i] += G * powl(m, 2) * dx / powl(r, 3);
@@ -91,6 +93,7 @@ class ParallelBodiesCalculator
         return;
     }
 
+    // 计算每个小球的数据
     void calculate()
     {
         positions();
@@ -130,9 +133,10 @@ int main(int argc, char *argv[])
 
     ParallelBodiesCalculator calculator(n, head, tail);
 
-    for (long double cur = deltaT; cur <= T; cur += deltaT)
+    for (long double t = 0; t < T; t += deltaT)
     {
         calculator.calculate();
+
         MPI_Allgatherv(MPI_IN_PLACE, tail - head, MPI_LONG_DOUBLE, Coordinate_x, recvcounts, displs, MPI_LONG_DOUBLE,
                        MPI_COMM_WORLD);
         MPI_Allgatherv(MPI_IN_PLACE, tail - head, MPI_LONG_DOUBLE, Coordinate_y, recvcounts, displs, MPI_LONG_DOUBLE,
