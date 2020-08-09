@@ -4,7 +4,7 @@
 
 ### 实验题目
 
-使用MPI，实现**PSRS**(Parallel sorting by regular sampling)算法，
+使用MPI，实现**PSRS**(Parallel sorting by regular sampling)算法
 
 ### 实验环境
 
