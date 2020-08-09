@@ -6,7 +6,7 @@
 
 using namespace std;
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
     double pi = 0;
     const int numberOfThreads = atoi(argv[1]); // 获取并行数
@@ -17,8 +17,8 @@ int main(int argc, char **argv)
 #pragma omp parallel for schedule(guided) reduction(+ : pi) num_threads(numberOfThreads)
     // NOTE:
     // #pragma omp 编译指导指令前缀
-    // parallel for OpenMP 指导指令，创建一个包含一个单独 for 语句的并行域
-    //     由于没有指定 schedule(type[, chunk]) ， for 迭代会尽可能平均地分配给各线程
+    // parallel for OpenMP 制导指令，创建一个包含一个单独 for 语句的并行域
+    //     指定 schedule(guided) ， for 迭代自动分配给各线程
     // reduction(+ : pi) 数据域属性子句，使用操作 + 对列表中出现的变量 pi 进行归约
     //     初始时，对列表中的每个变量，线程组中的每个线程都将会保留一个私有副本。
     //     在并行结构尾部，根据指定操作对所有线程中的相应变量进行归约，并更新全局值

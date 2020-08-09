@@ -6,7 +6,7 @@
 
 using namespace std;
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     const int numberOfThreads = atoi(argv[1]); // 获取并行数
     const int n = atoi(argv[2]);               // 获取级数规模
@@ -23,13 +23,13 @@ int main(int argc, char *argv[])
 
     int total = 0;
 
-    if (n >= 2)
-        total++;
-
 #pragma omp parallel for reduction(+ : total) num_threads(numberOfThreads)
     for (int i = 3; i <= n; i += 2)
         if (!isComposite[i])
             total++;
+
+    if (n >= 2)
+        total++;
 
     double endTime = omp_get_wtime();
 

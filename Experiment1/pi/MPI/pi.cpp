@@ -6,7 +6,7 @@
 
 using namespace std;
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
     int rank, size;
     const int n = atoi(argv[1]); // 获取级数规模
@@ -23,7 +23,6 @@ int main(int argc, char **argv)
         double x = (i + 0.5) / n;
         local += 4.0 / (1.0 + pow(x, 2));
     }
-    // cout << "progress " << rank << "'s local = " << local << endl;
 
     MPI_Reduce(&local, &pi, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     // NOTE:

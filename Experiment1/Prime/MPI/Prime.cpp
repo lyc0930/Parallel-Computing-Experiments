@@ -5,7 +5,7 @@
 
 using namespace std;
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
     int rank, size;
     const int n = atoi(argv[1]); // 获取级数规模
@@ -19,11 +19,9 @@ int main(int argc, char **argv)
     bool isComposite[n + 1] = {true, true}; // 0 1 是合数
 
     for (int i = 2; i <= (int)sqrt(n); i++)
-    {
         if (!isComposite[i])
             for (int j = i; i * j <= n; j++)
                 isComposite[i * j] = true;
-    }
 
     int local = 0, total;
 
