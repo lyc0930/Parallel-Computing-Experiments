@@ -28,7 +28,7 @@ long double operator"" _ms(unsigned long long t) { return t / 1000.0; }
 const long double G = 6.6710E-11; // 引力常数
 const long double m = 10000_kg;   // 小球质量
 const long double deltaT = 1_ms;  // 刷新率
-const long double T = 1_s;        // 总仿真时间
+const long double T = 10_s;       // 总仿真时间
 
 long double Coordinate_x[N], Coordinate_y[N]; // 坐标
 long double Velocity_x[N], Velocity_y[N];     // 速度
@@ -101,7 +101,7 @@ class ParallelBodiesCalculator
     }
 };
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     int rank, size;
     const int n = atoi(argv[1]); // 获取小球数量
@@ -119,8 +119,8 @@ int main(int argc, char *argv[])
         Coordinate_y[i] = (i / (int)sqrt(n)) * 1_cm;
     }
 
-    int *recvcounts = (int *)malloc(size * sizeof(int));
-    int *displs = (int *)malloc(size * sizeof(int));
+    int recvcounts[size];
+    int displs[size];
 
     for (int i = 0; i < size; i++)
     {
@@ -152,14 +152,11 @@ int main(int argc, char *argv[])
     }
     else
     {
-        MPI_Gatherv(Velocity_x + head, tail - head, MPI_LONG_DOUBLE, Velocity_x, recvcounts, displs, MPI_LONG_DOUBLE, 0,
+        MPI_Gatherv(Velocity_x, tail - head, MPI_LONG_DOUBLE, Velocity_x, recvcounts, displs, MPI_LONG_DOUBLE, 0,
                     MPI_COMM_WORLD);
-        MPI_Gatherv(Velocity_y + head, tail - head, MPI_LONG_DOUBLE, Velocity_y, recvcounts, displs, MPI_LONG_DOUBLE, 0,
+        MPI_Gatherv(Velocity_y, tail - head, MPI_LONG_DOUBLE, Velocity_y, recvcounts, displs, MPI_LONG_DOUBLE, 0,
                     MPI_COMM_WORLD);
     }
-
-    free(recvcounts);
-    free(displs);
 
     double endTime = MPI_Wtime();
 
