@@ -54,11 +54,10 @@ int main(int argc, char* argv[])
         recvcounts[i] = ((i == size - 1) ? n : (i + 1) * n / size) - displs[i]; // 局部长度
     }
 
-    int head = displs[rank];                    // 局部队首
-    int tail = displs[rank] + recvcounts[rank]; // 局部队尾
+    int localLength = recvcounts[rank]; // 局部长度
 
     int* global = new int[n];
-    int* local = new int[tail - head];
+    int* local = new int[localLength];
 
     /* ======================== Phase I ======================== */
     // Initialization
@@ -83,23 +82,26 @@ int main(int argc, char* argv[])
     /* ======================== Phase II ======================== */
     // Scatter data, local sort and regular samples collected
 
-    MPI_Scatterv(global, recvcounts, displs, MPI_INT, local, tail - head, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Scatterv(global, recvcounts, displs, MPI_INT, local, localLength, MPI_INT, 0,
+                 MPI_COMM_WORLD); // 将全局数据均匀散播到其它处理器中
 
-    sort(local, local + tail - head); // 局部排序
+    sort(local, local + localLength); // 局部排序
 
     int sample[size]; // 样本，数量与进程数相同（假设局部长度大于进程总数）
 
     for (int i = 0; i < size; i++)
-        sample[i] = local[i * (tail - head) / size]; // 采样
+        sample[i] = local[i * localLength / size]; // 均匀采样
 
     int globalSample[size * size];
-    MPI_Gather(sample, size, MPI_INT, globalSample, size, MPI_INT, 0, MPI_COMM_WORLD); // 全局共计 p^2 个样本
+
+    MPI_Gather(sample, size, MPI_INT, globalSample, size, MPI_INT, 0, MPI_COMM_WORLD); // 收集全局共计 p^2 个样本
 
     /* ======================= Phase III ======================= */
     // Gather and merge samples, choose and broadcast p-1 pivots
 
     int* pivot = (new int[size + 1]) + 1; // 划分元素，特殊的地址设置是为 Phase IV 中越界下标之便
-    if (rank == 0)                        // 通过 multimerge 合并各局部样本
+
+    if (rank == 0) // 通过 multimerge 合并各局部样本
     {
         int start[size]; // 局部样本指针
         int mergedGlobalSample[size * size];
@@ -119,13 +121,13 @@ int main(int argc, char* argv[])
     // Local data is partitioned
 
     pivot[-1] = local[0] - 1; // 越界下标，便于统一处理上下界
-    pivot[size - 1] = local[tail - head - 1];
+    pivot[size - 1] = local[localLength - 1];
 
     int part[size + 1] = {0}; // 按 pivot 对局部进行划分
 
     for (int k = 0, i = 0; k < size; k++)
     {
-        while ((i < tail - head) && (pivot[k - 1] < local[i]) && (local[i] <= pivot[k]))
+        while ((i < localLength) && (pivot[k - 1] < local[i]) && (local[i] <= pivot[k]))
             i++;
         part[k + 1] = i;
     }
@@ -142,8 +144,8 @@ int main(int argc, char* argv[])
     for (int i = 0; i < size; i++)
         MPI_Gather(partLength + i, 1, MPI_INT, recvcounts, 1, MPI_INT, i, MPI_COMM_WORLD);
 
-    int localLength = accumulate(&recvcounts[0], &recvcounts[size], 0); // 重新分配后，局部的总长度
-    int* local_reallocated = new int[localLength];                      // 重新分配后的局部段
+    localLength = accumulate(&recvcounts[0], &recvcounts[size], 0); // 重新分配后，局部的总长度
+    int* local_reallocated = new int[localLength];                  // 重新分配后的局部段
 
     displs[0] = 0;
     for (int i = 0; i < size; i++)
@@ -167,6 +169,7 @@ int main(int argc, char* argv[])
     // Root processor collects all the data
 
     MPI_Gather(&localLength, 1, MPI_INT, recvcounts, 1, MPI_INT, 0, MPI_COMM_WORLD); // 收集局部长度
+
     if (rank == 0)
     {
         displs[0] = 0;
