@@ -8,18 +8,17 @@
 
 using namespace std;
 
-const double p = 0.2;         // probability of slow down
-const unsigned int v_max = 8; // upper bound of velocity
+const double p = 0.2;          // probability of slow down
+const unsigned int v_max = 12; // upper bound of velocity
 
-unsigned int velocity[1000000 + 1];
-unsigned int position[1000000 + 1];
-// 为避免 Segment Fault 将数组设为全局
-
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     int rank, size;
     const int n = atoi(argv[1]);              // 获取车辆数量
     const int numberOfCycles = atoi(argv[2]); // 周期数
+
+    unsigned int velocity[n];     // 速度
+    unsigned int position[n + 1]; // 位置
 
     MPI_Init(NULL, NULL);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -29,12 +28,10 @@ int main(int argc, char *argv[])
 
     double startTime = MPI_Wtime();
 
-    int *recvcounts =
-        (int *)malloc(size * sizeof(int)); // integer array (of length group size) containing the number of elements
-                                           // that are received from each process (significant only at root)
-    int *displs = (int *)malloc(
-        size * sizeof(int)); // integer array (of length group size). Entry i specifies the displacement relative to
-                             // recvbuf at which to place the incoming data from process i (significant only at root)
+    int recvcounts[size]; // integer array (of length group size) containing the number of elements
+                          // that are received from each process (significant only at root)
+    int displs[size];     // integer array (of length group size). Entry i specifies the displacement relative to
+                          // recvbuf at which to place the incoming data from process i (significant only at root)
 
     for (int i = 0; i < size; i++)
     {
@@ -50,7 +47,8 @@ int main(int argc, char *argv[])
         velocity[i] = 0;
         position[i] = i + 1;
     }
-    position[n] = numeric_limits<unsigned int>::max();
+
+    position[n] = numeric_limits<unsigned int>::max(); // 最后一辆车前方没有车辆
 
     for (int i = 0; i < numberOfCycles; i++)
     {
@@ -61,6 +59,7 @@ int main(int argc, char *argv[])
             MPI_Status status;
             MPI_Recv(position + tail, 1, MPI_UNSIGNED, rank + 1, i * (size - 1) + rank, MPI_COMM_WORLD, &status);
         }
+
         for (int j = head; j < tail; j++)
         {
             unsigned int distance = position[j + 1] - position[j] - 1; // 车辆间距
@@ -91,7 +90,6 @@ int main(int argc, char *argv[])
     }
     else
     {
-
         MPI_Gatherv(velocity + head, tail - head, MPI_UNSIGNED, velocity, recvcounts, displs, MPI_UNSIGNED, 0,
                     MPI_COMM_WORLD);
         MPI_Gatherv(position + head, tail - head, MPI_UNSIGNED, position, recvcounts, displs, MPI_UNSIGNED, 0,
@@ -99,9 +97,6 @@ int main(int argc, char *argv[])
     }
 
     double endTime = MPI_Wtime();
-
-    free(recvcounts);
-    free(displs);
 
     if (rank == 0)
     {
