@@ -214,7 +214,7 @@ class ParallelBodiesCalculator
 ```
 周期结束后，`root` 进程收集全局的速度以便输出
 ```c++
-    if (rank == 0)
+        if (rank == 0)
     {
         MPI_Gatherv(MPI_IN_PLACE, tail - head, MPI_LONG_DOUBLE, Velocity_x, recvcounts, displs, MPI_LONG_DOUBLE, 0,
                     MPI_COMM_WORLD);
@@ -223,9 +223,9 @@ class ParallelBodiesCalculator
     }
     else
     {
-        MPI_Gatherv(Velocity_x, tail - head, MPI_LONG_DOUBLE, Velocity_x, recvcounts, displs, MPI_LONG_DOUBLE, 0,
+        MPI_Gatherv(Velocity_x + head, tail - head, MPI_LONG_DOUBLE, Velocity_x, recvcounts, displs, MPI_LONG_DOUBLE, 0,
                     MPI_COMM_WORLD);
-        MPI_Gatherv(Velocity_y, tail - head, MPI_LONG_DOUBLE, Velocity_y, recvcounts, displs, MPI_LONG_DOUBLE, 0,
+        MPI_Gatherv(Velocity_y + head, tail - head, MPI_LONG_DOUBLE, Velocity_y, recvcounts, displs, MPI_LONG_DOUBLE, 0,
                     MPI_COMM_WORLD);
     }
 ```

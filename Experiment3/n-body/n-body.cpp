@@ -152,9 +152,9 @@ int main(int argc, char* argv[])
     }
     else
     {
-        MPI_Gatherv(Velocity_x, tail - head, MPI_LONG_DOUBLE, Velocity_x, recvcounts, displs, MPI_LONG_DOUBLE, 0,
+        MPI_Gatherv(Velocity_x + head, tail - head, MPI_LONG_DOUBLE, Velocity_x, recvcounts, displs, MPI_LONG_DOUBLE, 0,
                     MPI_COMM_WORLD);
-        MPI_Gatherv(Velocity_y, tail - head, MPI_LONG_DOUBLE, Velocity_y, recvcounts, displs, MPI_LONG_DOUBLE, 0,
+        MPI_Gatherv(Velocity_y + head, tail - head, MPI_LONG_DOUBLE, Velocity_y, recvcounts, displs, MPI_LONG_DOUBLE, 0,
                     MPI_COMM_WORLD);
     }
 
