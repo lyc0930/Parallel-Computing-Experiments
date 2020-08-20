@@ -70,10 +70,7 @@ $p$ 个进程将本地已排序的数据（大约 $\dfrac{n}{p}$ 个），通过
 ```c++
     if (rank == 0)
     {
-        generate_n(global, n, []() {
-            static int i = 1;
-            return i++;
-        });                                     // 生成 1 ~ n 的序列
+        iota(&global[0], &global[n], 1);        // 生成 1 ~ n 的序列
         random_shuffle(&global[0], &global[n]); // 随机打乱序列
 
         // 输出乱序序列
